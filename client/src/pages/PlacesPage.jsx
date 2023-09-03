@@ -7,7 +7,7 @@ export const PlacesPage = () => {
   const [places, setPlaces] = useState([]);
 
   useEffect(() => {
-    axios.get('/places').then(({ data }) => {
+    axios.get('/user-places').then(({ data }) => {
       setPlaces(data);
     });
   }, []);
@@ -37,17 +37,21 @@ export const PlacesPage = () => {
           Add new places
         </Link>
       </div>
-      <div className='mt-10'>
+      <div className='mt-10 flex flex-col gap-4'>
         {places.length > 0 &&
           places.map((place, index) => (
             <Link
               to={'/account/places/' + place._id}
               key={index}
-              className='flex gap-4 bg-slate-100 p-4 rounded-xl cursor-pointer'
+              className='flex gap-4 bg-zinc-100 p-4 rounded-xl shadow-md shadow-gray-300  cursor-pointer'
             >
-              <div className='w-32 h-32 bg-slate-300 shrink-0 rounded-md'>
-                {places.photos && (
-                  <img src={place.photos[index]} alt={place.title} />
+              <div className='flex bg-slate-300 shrink-0 rounded-md'>
+                {place.photos && (
+                  <img
+                    className='object-cover rounded-md w-60 h-auto'
+                    src={'http://127.0.0.1:3000/uploads/' + place.photos[0]}
+                    alt={place.title}
+                  />
                 )}
               </div>
               <div className='flex-col'>

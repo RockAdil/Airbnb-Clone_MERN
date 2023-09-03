@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PhotosUploader } from '../PhotosUploader';
 import { Perks } from '../Perks';
 import { AccountNav } from '../AccountNav';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 
 export const PlacesFormPage = () => {
+  const { id } = useParams();
   const [title, setTitle] = useState('');
   const [address, setAddress] = useState('');
   const [addPhotos, setAddPhotos] = useState([]);
@@ -16,6 +17,24 @@ export const PlacesFormPage = () => {
   const [checkOut, setCheckOut] = useState('');
   const [maxGuests, setMaxGuests] = useState(1);
   const [redirect, setRedirect] = useState('');
+  const [price, setPrice] = useState();
+
+  useEffect(() => {
+    if (!id) return;
+    axios.get('/places' + id).then(res => {
+      const { data } = res;
+      setTitle(data.title);
+      setAddress(data.address);
+      setAddPhotos(data.photos);
+      setDescription(data.description);
+      setPerks(data.perks);
+      setExtraInfo(data.extraInfo);
+      setCheckIn(data.checkIn);
+      setCheckOut(data.checkOut);
+      setMaxGuests(data.maxGuests);
+      setPrice(data.price);
+    });
+  }, [id]);
 
   function inputHeader(text) {
     return <h2 className='text-xl mt-4'>{text}</h2>;
@@ -32,9 +51,9 @@ export const PlacesFormPage = () => {
     );
   }
 
-  async function addNewPlace(ev) {
+  async function savePlace(ev) {
     ev.preventDefault();
-    const { data } = await axios.post('/places', {
+    const placeData = {
       title,
       address,
       addPhotos,
@@ -44,9 +63,17 @@ export const PlacesFormPage = () => {
       checkIn,
       checkOut,
       maxGuests,
-    });
+      price,
+    };
+
+    if (id) {
+      // update
+      await axios.put('/places', { id, ...placeData });
+    } else {
+      // new place
+      await axios.post('/places', placeData);
+    }
     setRedirect('/account/places');
-    console.log(data);
   }
 
   if (redirect) {
@@ -56,7 +83,7 @@ export const PlacesFormPage = () => {
   return (
     <div>
       <AccountNav />
-      <form onSubmit={addNewPlace}>
+      <form onSubmit={savePlace}>
         {preInput(
           'Title',
           'Title for your place, should be short and catchy as in advertisement'
@@ -100,7 +127,7 @@ export const PlacesFormPage = () => {
           'Check in&out times',
           'add check in and out times, remember to have some time window for cleaning the room between guests'
         )}
-        <div className='grid gap-2 sm:grid-cols-3'>
+        <div className='grid gap-2 grid-cols-2 sm:grid-cols-4'>
           <div>
             <h3 className='mt-2 -mb-1'>Check in time</h3>
             <input
@@ -126,6 +153,15 @@ export const PlacesFormPage = () => {
               placeholder='no of guests'
               value={maxGuests}
               onChange={e => setMaxGuests(e.target.value)}
+            />
+          </div>
+          <div>
+            <h3 className='mt-2 -mb-1'>Price per night</h3>
+            <input
+              type='number'
+              placeholder='$00.00'
+              value={price}
+              onChange={e => setPrice(e.target.value)}
             />
           </div>
         </div>
