@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
 const Place = require('./models/Place');
+const Booking = require('./models/Booking');
 require('dotenv').config();
 const imageDownloader = require('image-downloader');
 const multer = require('multer');
@@ -26,6 +27,15 @@ app.use(
 );
 
 Mongoose.connect(process.env.Mongo_URL);
+
+function getUserDataFromReq(req) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(req.cookies.token, jwtSecret, {}, async (err, userData) => {
+      if (err) throw err;
+      resolve(userData);
+    });
+  });
+}
 
 app.get('/test', (req, res) => {
   res.json('testing');
@@ -213,6 +223,34 @@ app.get('/places/:id', async (req, res) => {
   const { id } = req.params;
 
   res.json(await Place.findById(id));
+});
+
+// Booking
+app.post('/bookings', async (req, res) => {
+  const userData = await getUserDataFromReq(req);
+  const { place, checkIn, checkOut, numberOfGuest, name, phone, price } =
+    req.body;
+  Booking.create({
+    user: userData.id,
+    place,
+    checkIn,
+    checkOut,
+    numberOfGuest,
+    name,
+    phone,
+    price,
+  })
+    .then(doc => {
+      res.json(doc);
+    })
+    .catch(err => {
+      throw err;
+    });
+});
+
+app.get('/bookings', async (req, res) => {
+  const userData = await getUserDataFromReq(req);
+  res.json(await Booking.find({ user: userData.id }).populate('place'));
 });
 
 app.listen(3000);
