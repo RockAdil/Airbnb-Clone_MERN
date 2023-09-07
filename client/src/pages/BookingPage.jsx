@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { AddressLink } from '../AddressLink';
-import { PlaceGallery } from '../placeGallery';
+import { PlaceGallery } from '../PlaceGallery';
 import { differenceInCalendarDays, format } from 'date-fns';
 
 export const BookingPage = () => {
